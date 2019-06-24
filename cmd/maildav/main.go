@@ -13,8 +13,15 @@ import (
 
 func main() {
 	app := cli.NewApp()
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "config,c",
+			Usage: "Path to config file.",
+			Value: "config.yml",
+		},
+	}
 	app.Action = func(c *cli.Context) error {
-		cfgFile, err := os.OpenFile("config.yml", os.O_RDONLY, 0644)
+		cfgFile, err := os.OpenFile(c.String("config"), os.O_RDONLY, 0644)
 		if err != nil {
 			return errors.Wrap("Could not open config file", err)
 		}
