@@ -32,26 +32,42 @@ func main() {
 		if err != nil {
 			return errors.Wrap("Error parsing config", err)
 		}
-		// TODO: Actually support multiple pollers
-		poller, err := maildav.NewPoller(cfg.Pollers[0])
-		if err != nil {
-			return errors.Wrap("Error initializing poller", err)
+
+		results := make(chan error, len(cfg.Pollers))
+		pollerCancels := []func(){}
+		for _, pollerCfg := range cfg.Pollers {
+			poller, err := maildav.NewPoller(pollerCfg)
+			if err != nil {
+				return errors.Wrap("Error initializing poller", err)
+			}
+
+			uploader := &maildav.Uploader{}
+
+			ctx, cancel := context.WithCancel(context.Background())
+			pollerCancels = append(pollerCancels, cancel)
+
+			go func() {
+				results <- poller.StartPolling(ctx, uploader)
+			}()
 		}
-
-		uploader := &maildav.Uploader{}
-
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
 
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, os.Interrupt)
 
 		go func() {
 			<-sigChan
-			cancel()
+
+			for _, cancel := range pollerCancels {
+				cancel()
+			}
 		}()
 
-		return poller.StartPolling(ctx, uploader)
+		var errs error
+		for range pollerCancels {
+			errs = errors.NewMultiError(errs, <-results)
+		}
+
+		return errs
 	}
 
 	err := app.Run(os.Args)
