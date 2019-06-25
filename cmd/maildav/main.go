@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"maildav"
 	"os"
 	"os/signal"
+
+	"github.com/targodan/maildav"
 
 	"github.com/tarent/logrus"
 	"github.com/targodan/go-errors"
