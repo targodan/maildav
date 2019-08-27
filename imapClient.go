@@ -39,7 +39,9 @@ func NewIMAPClient(cfg *SourceConfig, cp *ConnectionPool) (IMAPClient, error) {
 }
 
 func (c *imapClient) Unlock() {
-	c.cp.Unlock(c.cfg)
+    if c.cp != nil {
+        c.cp.Unlock(c.cfg)
+    }
 }
 
 func (c *imapClient) Login() error {

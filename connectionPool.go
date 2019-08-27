@@ -70,9 +70,6 @@ func (cp *ConnectionPool) ConnectAndLock(cfg *SourceConfig) (IMAPClient, error) 
 }
 
 func (cp *ConnectionPool) Unlock(cfg *SourceConfig) {
-	cp.mapLock.Lock()
-	defer cp.mapLock.Unlock()
-
 	lock, ok := cp.locks[cfg.Name]
 	if ok {
 		lock.Unlock()
