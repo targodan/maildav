@@ -2,20 +2,25 @@ package maildav
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"time"
 
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-message"
 	"github.com/tarent/logrus"
 	"github.com/targodan/go-errors"
 )
 
+var DefaultConnectionPool *ConnectionPool
+
+func init() {
+    DefaultConnectionPool = NewConnectionPool()
+}
+
 type Poller struct {
 	config *PollerConfig
+    cp *ConnectionPool
 }
 
 type DestinationInfo struct {
@@ -32,6 +37,7 @@ type Attachment struct {
 func NewPoller(config *PollerConfig) (*Poller, error) {
 	return &Poller{
 		config: config,
+        cp: DefaultConnectionPool,
 	}, nil
 }
 
@@ -63,20 +69,11 @@ func (p *Poller) StartPolling(ctx context.Context, uploader *Uploader) error {
 func (p *Poller) Poll() ([]*Attachment, error) {
 	attachments := []*Attachment{}
 
-	logrus.WithField("source", p.config.SourceName).Info("Connecting to IMAP server...")
-	c, err := p.connect()
+	c, err := p.cp.ConnectAndLock(p.config.SourceConfig)
 	if err != nil {
-		return attachments, errors.Wrap("could not connect to imap server", err)
+		return attachments, err
 	}
-	defer c.Logout()
-	logrus.WithField("source", p.config.SourceName).Info("Connection successfull.")
-
-	logrus.WithField("source", p.config.SourceName).Info("Loggin in to IMAP server...")
-	err = p.login(c)
-	if err != nil {
-		return attachments, errors.Wrap("could not log in to imap server", err)
-	}
-	logrus.WithField("source", p.config.SourceName).Info("Login successfull.")
+    defer c.Unlock()
 
 	logrus.WithField("source", p.config.SourceName).Info("Scanning directories...")
 	attachments, err = p.scanDirs(c)
@@ -88,18 +85,7 @@ func (p *Poller) Poll() ([]*Attachment, error) {
 	return attachments, nil
 }
 
-func (p *Poller) connect() (*client.Client, error) {
-	// TODO: add suport for startTls: https://godoc.org/github.com/emersion/go-imap/client#ex-Client-StartTLS
-	// TODO: add non-TLS support
-	// TODO: give a tls.Config for supporting ignore certificates and os on...
-	return client.DialTLS(fmt.Sprintf("%s:%d", p.config.SourceConfig.Server, p.config.SourceConfig.Port), nil)
-}
-
-func (p *Poller) login(c *client.Client) error {
-	return c.Login(p.config.SourceConfig.Username, p.config.SourceConfig.Password)
-}
-
-func (p *Poller) scanDirs(c *client.Client) ([]*Attachment, error) {
+func (p *Poller) scanDirs(c IMAPClient) ([]*Attachment, error) {
 	attachments := []*Attachment{}
 
 	var errs error
@@ -115,7 +101,7 @@ func (p *Poller) scanDirs(c *client.Client) ([]*Attachment, error) {
 	return attachments, errs
 }
 
-func (p *Poller) scanDir(c *client.Client, dir string) ([]*Attachment, error) {
+func (p *Poller) scanDir(c IMAPClient, dir string) ([]*Attachment, error) {
 	attachments := []*Attachment{}
 
 	_, err := c.Select(dir, false)

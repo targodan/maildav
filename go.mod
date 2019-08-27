@@ -3,7 +3,7 @@ module github.com/targodan/maildav
 go 1.12
 
 require (
-	github.com/emersion/go-imap v1.0.0-rc.2
+	github.com/emersion/go-imap v1.0.0
 	github.com/emersion/go-message v0.10.4-0.20190609165112-592ace5bc1ca
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
