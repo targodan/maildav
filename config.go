@@ -94,13 +94,12 @@ func (cfg *Config) mapSourcesAndDestinations() error {
 }
 
 func (cfg *Config) verifyTimeouts() error {
-	var err error
-
 	for _, poller := range cfg.Pollers {
 		if poller.Timeout <= 0 {
-			err = errors.NewMultiError(err, errors.Newf("invalid timeout %v for poller %s -> %s", poller.Timeout, poller.SourceName, poller.DestinationName))
+            // FIXME: Hacky, but I'm fed up with this error.
+            poller.Timeout = 60*time.Second
 		}
 	}
 
-	return err
+	return nil
 }
