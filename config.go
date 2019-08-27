@@ -1,10 +1,10 @@
 package maildav
 
 import (
-	"errors"
 	"io"
 	"time"
 
+    errors "github.com/targodan/go-errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -56,7 +56,7 @@ func ParseConfig(rdr io.Reader) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cfg, nil
+	return cfg, cfg.verifyTimeouts()
 }
 
 func (cfg *Config) findSource(name string) *SourceConfig {
@@ -90,4 +90,16 @@ func (cfg *Config) mapSourcesAndDestinations() error {
 		}
 	}
 	return nil
+}
+
+func (cfg *Config) verifyTimeouts() error {
+    var err error
+
+	for _, poller := range cfg.Pollers {
+		if poller.Timeout <= 0 {
+            err = errors.NewMultiError(err, errors.Newf("invalid timeout %v for poller %s -> %s", poller.Timeout, poller.SourceName, poller.DestinationName))
+		}
+	}
+
+	return err
 }
