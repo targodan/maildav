@@ -46,6 +46,7 @@ type PollerConfig struct {
 
 func ParseConfig(rdr io.Reader) (*Config, error) {
 	decoder := yaml.NewDecoder(rdr)
+    decoder.SetStrict(true)
 
 	cfg := &Config{}
 	err := decoder.Decode(cfg)
