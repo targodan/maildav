@@ -4,7 +4,7 @@ import (
 	"io"
 	"time"
 
-    errors "github.com/targodan/go-errors"
+	errors "github.com/targodan/go-errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -46,7 +46,7 @@ type PollerConfig struct {
 
 func ParseConfig(rdr io.Reader) (*Config, error) {
 	decoder := yaml.NewDecoder(rdr)
-    decoder.SetStrict(true)
+	decoder.SetStrict(true)
 
 	cfg := &Config{}
 	err := decoder.Decode(cfg)
@@ -94,11 +94,11 @@ func (cfg *Config) mapSourcesAndDestinations() error {
 }
 
 func (cfg *Config) verifyTimeouts() error {
-    var err error
+	var err error
 
 	for _, poller := range cfg.Pollers {
 		if poller.Timeout <= 0 {
-            err = errors.NewMultiError(err, errors.Newf("invalid timeout %v for poller %s -> %s", poller.Timeout, poller.SourceName, poller.DestinationName))
+			err = errors.NewMultiError(err, errors.Newf("invalid timeout %v for poller %s -> %s", poller.Timeout, poller.SourceName, poller.DestinationName))
 		}
 	}
 

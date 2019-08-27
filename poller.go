@@ -15,12 +15,12 @@ import (
 var DefaultConnectionPool *ConnectionPool
 
 func init() {
-    DefaultConnectionPool = NewConnectionPool()
+	DefaultConnectionPool = NewConnectionPool()
 }
 
 type Poller struct {
 	config *PollerConfig
-    cp *ConnectionPool
+	cp     *ConnectionPool
 }
 
 type DestinationInfo struct {
@@ -37,7 +37,7 @@ type Attachment struct {
 func NewPoller(config *PollerConfig) (*Poller, error) {
 	return &Poller{
 		config: config,
-        cp: DefaultConnectionPool,
+		cp:     DefaultConnectionPool,
 	}, nil
 }
 
@@ -73,7 +73,7 @@ func (p *Poller) Poll() ([]*Attachment, error) {
 	if err != nil {
 		return attachments, err
 	}
-    defer c.Unlock()
+	defer c.Unlock()
 
 	logrus.WithField("source", p.config.SourceName).Info("Scanning directories...")
 	attachments, err = p.scanDirs(c)

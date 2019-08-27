@@ -13,6 +13,8 @@ import (
 )
 
 func main() {
+    logrus.SetLevel(logrus.DebugLevel)
+
 	app := cli.NewApp()
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
