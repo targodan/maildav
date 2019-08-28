@@ -36,7 +36,7 @@ func (cp *ConnectionPool) getOrConnect(cfg *SourceConfig) (IMAPClient, error) {
 
 		logrus.WithField("source", cfg.Name).Info("Connecting to IMAP server...")
 
-		c, err := NewIMAPClient(cfg, cp)
+		c, err = NewIMAPClient(cfg, cp)
 		if err != nil {
 			return nil, errors.Wrap("could not connect to imap server", err)
 		}
