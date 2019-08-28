@@ -3,7 +3,9 @@ package maildav
 import (
 	"io"
 	"time"
+    "fmt"
 
+    "github.com/tarent/logrus"
 	errors "github.com/targodan/go-errors"
 	"gopkg.in/yaml.v2"
 )
@@ -42,6 +44,10 @@ type PollerConfig struct {
 	DestinationConfig    *DestinationConfig
 	DestinationDirectory string        `yaml:"destinationDirectory"`
 	Timeout              time.Duration `yaml:"timeout"`
+}
+
+func (cfg *PollerConfig) String() string {
+    return fmt.Sprintf("%s%v -> %s[%v]", cfg.SourceName, cfg.SourceDirectories, cfg.DestinationName, cfg.DestinationDirectory)
 }
 
 func ParseConfig(rdr io.Reader) (*Config, error) {
@@ -94,12 +100,17 @@ func (cfg *Config) mapSourcesAndDestinations() error {
 }
 
 func (cfg *Config) verifyTimeouts() error {
+    var err error
+
 	for _, poller := range cfg.Pollers {
 		if poller.Timeout <= 0 {
-            // FIXME: Hacky, but I'm fed up with this error.
-            poller.Timeout = 60*time.Second
+            logrus.WithFields(logrus.Fields{
+                "poller": poller,
+                "timeout": poller.Timeout,
+            }).Error("Invalid timeout!")
+            err = errors.NewMultiError(err, errors.New("invalid timeout"))
 		}
 	}
 
-	return nil
+	return err
 }
