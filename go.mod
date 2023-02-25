@@ -10,7 +10,7 @@ require (
 	github.com/studio-b12/gowebdav v0.0.0-20190103184047-38f79aeaf1ac
 	github.com/tarent/logrus v0.11.5
 	github.com/targodan/go-errors v0.0.0-20180112090806-8f9e51621795
-	golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0
 	gopkg.in/yaml.v2 v2.2.2
 )
